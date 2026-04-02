@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Terveyskeskusten saavutettavuuskartta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="paanjes.github.io/style.css" />
+</head>
+<body>
+  <div style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; z-index: 1000; font-size: 12px;">
+    Hospital icon made by mavadee on flaticon
+    <a href="https://www.flaticon.com/free-icons/hospital" title="hospital icons" target="_blank">Hospital icons created by mavadee on Flaticon</a>
+  </div>
+
+  <div id="app">
+    <aside id="sidebar">
+      <h1>Sairaaloiden saavutettavuus (matka-aika autolla minuutteina)</h1>
+      <p class="intro">
+        Klikkaa sairaalaa kartalla tai listassa poistaaksesi tai palauttaaksesi sen.
+        Kartta päivittyy automaattisesti seuraavaksi lähimmän aktiivisen sairaalan mukaan.
+      </p>
+
+      <h2>Luokittelu</h2>
+      <div class="legend">
+        <div><span class="swatch s0"></span>Ei voitu laskea</div>
+        <div><span class="swatch s1"></span>0–15 min</div>
+        <div><span class="swatch s2"></span>15–30 min</div>
+        <div><span class="swatch s3"></span>30–45 min</div>
+        <div><span class="swatch s4"></span>45–60 min</div>
+        <div><span class="swatch s5"></span>60–90 min</div>
+        <div><span class="swatch s6"></span>90–120 min</div>
+        <div><span class="swatch s7"></span>120–180 min</div>
+        <div><span class="swatch s8"></span>180+ min</div>
+      </div>
+
+      <div class="controls">
+        <button id="resetBtn" type="button">Resetoi sairaalat</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Sairaalat</div>
+          <div class="stat-value"><span id="activeCount">0</span></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Matka-ajan keskiarvo</div>
+          <div class="stat-value"><span id="avgTime">-</span> min</div>
+        </div>
+      </div>
+
+      <h2>Sairaalat</h2>
+      <div id="hospitalList"></div>
+    </aside>
+
+    <main id="map"></main>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
+  <script src="paanjes.github.io/app.js"></script>
+</body>
+</html>
