@@ -133,12 +133,12 @@ function tooltipHtml(props) {
   const gridId = props.grid_id ?? "-";
   const population = props.population ?? props.vaesto ?? "-";
 
-  if (time === null) {
+  if (time === null || time === 0) {
     return `
       <div>
         <strong>Postinumero: </strong> ${gridId}<br>
         <strong>Väkiluku: </strong> ${population}<br>
-        <strong>Matka-aika: </strong> Ei aktiivista terveyskeskusta
+        <strong>Matka-aika: </strong> Laskenta epäonnistui
       </div>
     `;
   }
@@ -290,7 +290,7 @@ async function loadData() {
     throw new Error(`Failed to load hospitals.geojson: ${hospitalsResponse.status}`);
   }
   if(!hvaBoundsResponse.ok) {
-    throw new Error(`Failed to load hva_rajat.geojson: ${hvaBoundsResponse.status}`);
+    throw new Error(`Failed to load hva.geojson: ${hvaBoundsResponse.status}`);
   }
 
   gridData = await gridResponse.json();
