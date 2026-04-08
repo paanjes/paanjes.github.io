@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Terveyskeskusten saavutettavuuskartta</title>
+  <title>Sairaaloiden saavutettavuuskartta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link
@@ -10,7 +10,7 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     crossorigin=""
   />
-  <link rel="stylesheet" href="paanjes.github.io/style.css" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <div style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; z-index: 1000; font-size: 12px;">
@@ -24,6 +24,7 @@
       <p class="intro">
         Klikkaa sairaalaa kartalla tai listassa poistaaksesi tai palauttaaksesi sen.
         Kartta päivittyy automaattisesti seuraavaksi lähimmän aktiivisen sairaalan mukaan.
+        Laskenta on tehty postinumeroalueen tiheimmästä 1km x 1km väestöruudusta.
       </p>
 
       <h2>Luokittelu</h2>
@@ -79,6 +80,6 @@
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     crossorigin=""
   ></script>
-  <script src="paanjes.github.io/app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
