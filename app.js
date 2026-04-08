@@ -44,6 +44,18 @@ var hospitalIcon = getHospitalIcon(map.getZoom());
 
 const disabledHospitals = new Set();
 
+const timeClasses = [
+  { label: "Ei voitu laskea" },
+  { label: "0–15 min" },
+  { label: "15–30 min" },
+  { label: "30–45 min" },
+  { label: "45–60 min" },
+  { label: "60–90 min" },
+  { label: "90–120 min" },
+  { label: "120–180 min" },
+  { label: "180+ min" }
+];
+
 let gridData = null;
 let hospitalsData = null;
 let gridLayer = null;
@@ -56,10 +68,12 @@ const avgTimeEl = document.getElementById("avgTime");
 const hospitalListEl = document.getElementById("hospitalList");
 const resetBtn = document.getElementById("resetBtn");
 
+// Normalizes an ID value to a string or null
 function normalizeId(value) {
   return value == null ? null : String(Math.floor(Number(value)));
 }
 
+// Gets the current travel time from properties, considering disabled hospitals
 function getCurrentTravelTime(props) {
   for (let i = 1; i <= 5; i++) {
     const hospitalId = normalizeId(props[`hospital_${i}`]);
@@ -74,6 +88,7 @@ function getCurrentTravelTime(props) {
   return null;
 }
 
+// Gets the current hospital ID from properties
 function getCurrentHospitalId(props) {
   for (let i = 1; i <= 5; i++) {
     const hospitalId = normalizeId(props[`hospital_${i}`]);
@@ -88,6 +103,7 @@ function getCurrentHospitalId(props) {
   return null;
 }
 
+// Gets the current hospital name from properties
 function getCurrentHospitalName(props) {
   for (let i = 1; i <= 5; i++) {
     const hospitalId = normalizeId(props[`hospital_${i}`]);
@@ -103,6 +119,7 @@ function getCurrentHospitalName(props) {
   return null;
 }
 
+// Returns a color based on travel time
 function getColor(time) {
   if (time === null) return "#ffffff";
   if (time === 0) return "#ffffff";
@@ -116,6 +133,7 @@ function getColor(time) {
   return "#ff0000";
 }
 
+// Styles the grid feature based on travel time
 function styleGridFeature(feature) {
   const time = getCurrentTravelTime(feature.properties);
   return {
@@ -127,6 +145,7 @@ function styleGridFeature(feature) {
   };
 }
 
+// Generates HTML for tooltips
 function tooltipHtml(props) {
   const time = getCurrentTravelTime(props);
   const hospitalName = getCurrentHospitalName(props);
@@ -153,6 +172,7 @@ function tooltipHtml(props) {
   `;
 }
 
+// Binds tooltip to grid features
 function onEachGridFeature(feature, layer) {
   layer.bindTooltip(tooltipHtml(feature.properties), {
     sticky: true,
@@ -160,6 +180,7 @@ function onEachGridFeature(feature, layer) {
   });
 }
 
+// Updates styles of grid layers
 function updateGridStyles() {
   if (!gridLayer) return;
 
@@ -169,6 +190,7 @@ function updateGridStyles() {
   });
 }
 
+// Updates opacity of hospital markers based on disabled status
 function updateHospitalMarkers() {
   for (const feature of hospitalsData.features) {
     const hospitalId = normalizeId(feature.properties.hospital_id);
@@ -180,6 +202,7 @@ function updateHospitalMarkers() {
   }
 }
 
+// Updates the hospital list UI
 function updateHospitalList() {
   hospitalListEl.innerHTML = "";
 
@@ -215,6 +238,7 @@ function updateHospitalList() {
   }
 }
 
+// Updates statistics like active count and average time
 function updateStats() {
   const total = hospitalsData.features.length;
   activeCountEl.textContent = String(total - disabledHospitals.size);
@@ -233,6 +257,62 @@ function updateStats() {
   avgTimeEl.textContent = count > 0 ? (sum / count).toFixed(1) : "-";
 }
 
+// Updates the population table with time classes
+function updatePopulationTable() {
+  let totalPopulation = 0;
+  for (const feature of gridData.features) {
+    const pop = feature.properties.population || feature.properties.vaesto || 0;
+    totalPopulation += pop;
+  }
+
+  const classCounts = new Array(timeClasses.length).fill(0);
+
+  for (const feature of gridData.features) {
+    const time = getCurrentTravelTime(feature.properties);
+    const pop = feature.properties.population || feature.properties.vaesto || 0;
+
+    if (time === null || time === 0) {
+      classCounts[0] += pop;
+    } else if (time <= 15) {
+      classCounts[1] += pop;
+    } else if (time <= 30) {
+      classCounts[2] += pop;
+    } else if (time <= 45) {
+      classCounts[3] += pop;
+    } else if (time <= 60) {
+      classCounts[4] += pop;
+    } else if (time <= 90) {
+      classCounts[5] += pop;
+    } else if (time <= 120) {
+      classCounts[6] += pop;
+    } else if (time <= 180) {
+      classCounts[7] += pop;
+    } else {
+      classCounts[8] += pop;
+    }
+  }
+
+  const tbody = document.getElementById("populationTableBody");
+  tbody.innerHTML = "";
+
+  for (let i = 0; i < timeClasses.length; i++) {
+    const percentage = totalPopulation > 0 ? (classCounts[i] / totalPopulation * 100).toFixed(1) : "0.0";
+    const row = document.createElement("tr");
+    const labelCell = document.createElement("td");
+    const totalCell = document.createElement("td");
+    totalCell.textContent = totalPopulation > 0 ? classCounts[i].toLocaleString() : "0";
+    labelCell.textContent = timeClasses[i].label;
+    const percentCell = document.createElement("td");
+    percentCell.textContent = percentage + "%";
+    row.appendChild(labelCell);
+    row.appendChild(percentCell);
+    row.appendChild(totalCell);
+    tbody.appendChild(row);
+  }
+}
+
+
+// Updates hospital icons based on zoom
 function updateHospitalIcons() {
   const currentZoom = map.getZoom();
   const newIcon = getHospitalIcon(currentZoom);
@@ -242,6 +322,7 @@ function updateHospitalIcons() {
   }
 }
 
+// Toggles a hospital's disabled status and updates UI
 function toggleHospital(hospitalId) {
   if (disabledHospitals.has(hospitalId)) {
     disabledHospitals.delete(hospitalId);
@@ -253,8 +334,10 @@ function toggleHospital(hospitalId) {
   updateHospitalMarkers();
   updateHospitalList();
   updateStats();
+  updatePopulationTable();
 }
 
+// Creates a marker for a hospital point
 function pointToHospitalMarker(feature, latlng) {
   const hospitalId = normalizeId(feature.properties.hospital_id);
   const name = feature.properties.name ?? hospitalId;
@@ -276,6 +359,7 @@ function pointToHospitalMarker(feature, latlng) {
   return marker;
 }
 
+// Loads data from GeoJSON files and initializes the map
 async function loadData() {
   const [gridResponse, hospitalsResponse, hvaBoundsResponse] = await Promise.all([
     fetch("./data/manner-suomi_postinumerot.geojson"),
@@ -323,6 +407,7 @@ async function loadData() {
   updateHospitalList();
   updateHospitalMarkers();
   updateStats();
+  updatePopulationTable();
 }
 
 resetBtn.addEventListener("click", () => {
@@ -331,6 +416,7 @@ resetBtn.addEventListener("click", () => {
   updateHospitalMarkers();
   updateHospitalList();
   updateStats();
+  updatePopulationTable();
 });
 
 loadData().catch(error => {
