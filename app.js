@@ -58,8 +58,13 @@ const timeClasses = [
 
 let gridData = null;
 let hospitalsData = null;
+let vaestoruudukkoData = null;
 let gridLayer = null;
 let hospitalLayer = null;
+let vaestoruudukkoLayer = null;
+let plus65Layer = null;
+let hvaBoundsData = null;
+let hvaLayer = null;
 
 const hospitalMarkersById = new Map();
 
@@ -143,6 +148,75 @@ function styleGridFeature(feature) {
     color: "#666",
     fillOpacity: 0.6
   };
+}
+
+// Returns a graduated color for vaestoruudukko values
+// Lower population values get lighter blue fills, higher values get darker blue.
+function getVaestoColor(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "#ffffff";
+  value = Number(value);
+  return value > 2000 ? "#084594"
+       : value > 1000 ? "#2171b5"
+       : value > 500  ? "#4292c6"
+       : value > 200  ? "#6baed6"
+       : value > 100  ? "#9ecae1"
+       : value > 50   ? "#c6dbef"
+       : "#eff3ff";
+}
+
+// Applies the population-based style to each vaestoruudukko polygon
+function styleVaestoruudukkoFeature(feature) {
+  const vaesto = feature.properties.vaesto ?? feature.properties.population;
+  return {
+    fillColor: getVaestoColor(vaesto),
+    weight: 0.3,
+    opacity: 0.4,
+    color: "#444",
+    fillOpacity: 0.65
+  };
+}
+
+// Attaches a simple tooltip to each vaestoruudukko feature showing the population value
+function onEachVaestoruudukkoFeature(feature, layer) {
+  const vaesto = feature.properties.vaesto ?? feature.properties.population ?? 0;
+  layer.bindTooltip(`Väestö: ${vaesto.toLocaleString()}`, {
+    sticky: true,
+    className: "grid-tooltip"
+  });
+}
+
+// Returns a color for 65+ population percentage, with higher percentages getting darker red fills
+function get65PlusColor(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "#ffffff";
+  value = Number(value);
+  return value > 80 ? "#67000d"
+      : value > 60 ? "#a50f15"
+      : value > 40 ? "#f74e54"
+      : value > 20 ? "#f89188"
+      : value > 0 ? "#f5c3b8"
+      : "#fff5f0";
+}
+
+function style65PlusFeature(feature) {
+  const vaesto = feature.properties.vaesto ?? 0;
+  const plus65 = feature.properties.ika_65_ ?? 0;
+  const percentage = vaesto > 0 ? (plus65 / vaesto * 100) : 0;
+  return {
+    fillColor: get65PlusColor(percentage),
+    weight: 0.3,
+    opacity: 0.4,
+    color: "#444",
+    fillOpacity: 0.65
+  };
+}
+
+function onEach65PlusFeature(feature, layer) {
+  const vaesto = feature.properties.vaesto ?? 0;
+  const plus65 = feature.properties.ika_65_ ?? 0;
+  layer.bindTooltip(`Väestö: ${vaesto.toLocaleString()}<br>65+: ${plus65.toLocaleString()} (${vaesto > 0 ? (plus65 / vaesto * 100).toFixed(1) : "0.0"}%)`, {
+    sticky: true,
+    className: "grid-tooltip"
+  });
 }
 
 // Generates HTML for tooltips
@@ -361,10 +435,11 @@ function pointToHospitalMarker(feature, latlng) {
 
 // Loads data from GeoJSON files and initializes the map
 async function loadData() {
-  const [gridResponse, hospitalsResponse, hvaBoundsResponse] = await Promise.all([
+  const [gridResponse, hospitalsResponse, hvaBoundsResponse, vaestoruudukkoResponse] = await Promise.all([
     fetch("./data/manner-suomi_postinumerot.geojson"),
     fetch("./data/manner-suomi_sairaalat.geojson"),
-    fetch("./data/hva.geojson")
+    fetch("./data/hva.geojson"),
+    fetch("./data/vaestoruudukko.geojson")
   ]);
 
   if (!gridResponse.ok) {
@@ -376,14 +451,28 @@ async function loadData() {
   if(!hvaBoundsResponse.ok) {
     throw new Error(`Failed to load hva.geojson: ${hvaBoundsResponse.status}`);
   }
+  if(!vaestoruudukkoResponse.ok) {
+    throw new Error(`Failed to load vaestoruudukko.geojson: ${vaestoruudukkoResponse.status}`);
+  }
 
   gridData = await gridResponse.json();
   hospitalsData = await hospitalsResponse.json();
   hvaBoundsData = await hvaBoundsResponse.json();
+  vaestoruudukkoData = await vaestoruudukkoResponse.json();
 
   gridLayer = L.geoJSON(gridData, {
     style: styleGridFeature,
     onEachFeature: onEachGridFeature
+  }).addTo(map);
+
+  vaestoruudukkoLayer = L.geoJSON(vaestoruudukkoData, {
+    style: styleVaestoruudukkoFeature,
+    onEachFeature: onEachVaestoruudukkoFeature
+  }).addTo(map);
+
+  plus65Layer = L.geoJSON(vaestoruudukkoData, {
+    style: style65PlusFeature,
+    onEachFeature: onEach65PlusFeature
   }).addTo(map);
 
   hospitalLayer = L.geoJSON(hospitalsData, {
@@ -396,6 +485,14 @@ async function loadData() {
   }).addTo(map);
 
   hvaLayer.bringToFront();
+
+  L.control.layers(null, {
+    "Väestöruudukko": vaestoruudukkoLayer,
+    "Yli 65 vuotiaiden osuus": plus65Layer,
+    "Saavutettavuuskartta": gridLayer,
+    "Sairaalat": hospitalLayer,
+    "HVA rajat": hvaLayer
+  }, { collapsed: false, position: 'topleft' }).addTo(map);
 
   const bounds = gridLayer.getBounds();
   if (bounds.isValid()) {
