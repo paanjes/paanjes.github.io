@@ -497,13 +497,15 @@ async function loadData() {
   vaestoruudukkoLayer = L.geoJSON(vaestoruudukkoData, {
     style: styleVaestoruudukkoFeature,
     onEachFeature: onEachVaestoruudukkoFeature,
-    renderer: L.canvas({ padding: 0.5 }) // Better performance with many polygons
+    renderer: L.canvas({ padding: 0.5 }), // Better performance with many polygons
+    minZoom: 0  // Only render at zoom levels where 1km polygons are visible
   })
 
   plus65Layer = L.geoJSON(vaestoruudukkoData, {
     style: style65PlusFeature,
     onEachFeature: onEach65PlusFeature,
-    renderer: L.canvas({ padding: 0.5 }) // Better performance with many polygons
+    renderer: L.canvas({ padding: 0.5 }), // Better performance with many polygons
+    minZoom: 0  // Only render at zoom levels where 1km polygons are visible
   })
 
   hospitalLayer = L.geoJSON(hospitalsData, {
