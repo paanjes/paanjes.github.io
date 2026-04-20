@@ -5,9 +5,16 @@ const map = L.map('map', {
   zoomDelta: 0.25
 });
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution: "&copy; OpenStreetMap contributors"
+let CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+	subdomains: 'abcd',
+	maxZoom: 20
+}).addTo(map);
+
+let CartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+	subdomains: 'abcd',
+	maxZoom: 20
 }).addTo(map);
 
 // Hospital icon with adaptive sizing based on zoom level
@@ -155,13 +162,20 @@ function styleGridFeature(feature) {
 function getVaestoColor(value) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return "#ffffff";
   value = Number(value);
-  return value > 2000 ? "#084594"
-       : value > 1000 ? "#2171b5"
-       : value > 500  ? "#4292c6"
-       : value > 200  ? "#6baed6"
-       : value > 100  ? "#9ecae1"
-       : value > 50   ? "#c6dbef"
-       : "#eff3ff";
+  return value > 500 ? "#ff0000"
+       : value > 100 ? "#ff2600"
+       : value > 50 ? "#ff7300"
+       : value > 30 ? "#ffae00"
+       : value > 20 ? "#eaff00"
+       : value > 15 ? "#fbff05"
+       : value > 10 ? "#b7ff00"
+       : value > 7  ? "#1aff00"
+       : value > 5  ? "#62ff87"
+       : value > 3  ? "#79ffb8"
+       : value >= 2   ? "#9fecff"
+       : value >= 1   ? "#00aeff"
+       : value > 0   ? "#ffffff"
+       : "#ffffff";
 }
 
 // Applies the population-based style to each vaestoruudukko polygon
@@ -169,10 +183,10 @@ function styleVaestoruudukkoFeature(feature) {
   const vaesto = feature.properties.vaesto ?? feature.properties.population;
   return {
     fillColor: getVaestoColor(vaesto),
-    weight: 0.3,
-    opacity: 0.4,
-    color: "#444",
-    fillOpacity: 0.65
+    weight: 1,
+    opacity: 0,
+    color: "#ffffff",
+    fillOpacity: 0.8
   };
 }
 
@@ -189,33 +203,48 @@ function onEachVaestoruudukkoFeature(feature, layer) {
 function get65PlusColor(value) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return "#ffffff";
   value = Number(value);
-  return value > 80 ? "#67000d"
-      : value > 60 ? "#a50f15"
-      : value > 40 ? "#f74e54"
-      : value > 20 ? "#f89188"
-      : value > 0 ? "#f5c3b8"
-      : "#fff5f0";
+  return value > 80 ? "#ff0000"
+      : value > 60 ? "#ff8800"
+      : value > 40 ? "#f2ff00"
+      : value > 20 ? "#77ff00"
+      : value > 0 ? "#04ff00"
+      : "#ffffff";
 }
 
+// Styles the feature based on the percentage of 65+ population. Higher percentages get darker red fills.
 function style65PlusFeature(feature) {
   const vaesto = feature.properties.vaesto ?? 0;
   const plus65 = feature.properties.ika_65_ ?? 0;
   const percentage = vaesto > 0 ? (plus65 / vaesto * 100) : 0;
   return {
     fillColor: get65PlusColor(percentage),
-    weight: 0.3,
-    opacity: 0.4,
-    color: "#444",
-    fillOpacity: 0.65
+    weight: 1,
+    opacity: 0,
+    color: "#ffffff",
+    fillOpacity: 0.8
   };
 }
 
+// Attaches a tooltip to each feature showing the population, 65+ count, and percentage of 65+ in the population
 function onEach65PlusFeature(feature, layer) {
   const vaesto = feature.properties.vaesto ?? 0;
   const plus65 = feature.properties.ika_65_ ?? 0;
   layer.bindTooltip(`Väestö: ${vaesto.toLocaleString()}<br>65+: ${plus65.toLocaleString()} (${vaesto > 0 ? (plus65 / vaesto * 100).toFixed(1) : "0.0"}%)`, {
     sticky: true,
     className: "grid-tooltip"
+  });
+}
+
+// show/hide legend sections based on which layers are currently visible
+function updateLegend() {
+  const visible = new Set();
+  if (map.hasLayer(gridLayer)) visible.add("Saavutettavuuskartta");
+  if (map.hasLayer(vaestoruudukkoLayer)) visible.add("Väestöruudukko");
+  if (map.hasLayer(plus65Layer)) visible.add("Yli 65-vuotiaiden osuus");
+
+  document.querySelectorAll(".legend-section").forEach(section => {
+    const layerName = section.dataset.layer;
+    section.style.display = visible.has(layerName) ? "block" : "none";
   });
 }
 
@@ -438,7 +467,7 @@ async function loadData() {
   const [gridResponse, hospitalsResponse, hvaBoundsResponse, vaestoruudukkoResponse] = await Promise.all([
     fetch("./data/manner-suomi_postinumerot.geojson"),
     fetch("./data/manner-suomi_sairaalat.geojson"),
-    fetch("./data/hva.geojson"),
+    fetch("./data/hva_rajat.geojson"),
     fetch("./data/vaestoruudukko.geojson")
   ]);
 
@@ -468,12 +497,12 @@ async function loadData() {
   vaestoruudukkoLayer = L.geoJSON(vaestoruudukkoData, {
     style: styleVaestoruudukkoFeature,
     onEachFeature: onEachVaestoruudukkoFeature
-  }).addTo(map);
+  })
 
   plus65Layer = L.geoJSON(vaestoruudukkoData, {
     style: style65PlusFeature,
     onEachFeature: onEach65PlusFeature
-  }).addTo(map);
+  })
 
   hospitalLayer = L.geoJSON(hospitalsData, {
     pointToLayer: pointToHospitalMarker
@@ -486,13 +515,29 @@ async function loadData() {
 
   hvaLayer.bringToFront();
 
-  L.control.layers(null, {
-    "Väestöruudukko": vaestoruudukkoLayer,
-    "Yli 65 vuotiaiden osuus": plus65Layer,
-    "Saavutettavuuskartta": gridLayer,
-    "Sairaalat": hospitalLayer,
-    "HVA rajat": hvaLayer
-  }, { collapsed: false, position: 'topleft' }).addTo(map);
+  var groupedOverlays = {
+          "Kartat":{
+            "Väestöruudukko":vaestoruudukkoLayer,
+            "Yli 65-vuotiaiden osuus":plus65Layer,
+            "Saavutettavuusanalyysi":gridLayer
+          }
+
+      };
+
+  var options = {
+    // Make the "Kartat" group exclusive (radio buttons).
+    exclusiveGroups: ["Kartat"],
+    // Show a checkbox next to non-exclusive group labels for toggling all
+    groupCheckboxes: true
+  };
+
+  // Use the custom grouped layer control, not "L.control.layers"
+  var baseLayers = {
+    "Tummat kartat": CartoDB_DarkMatter,
+    "Vaaleat kartat": CartoDB_Positron
+  };
+
+  L.control.groupedLayers(baseLayers, groupedOverlays, options).addTo(map);
 
   const bounds = gridLayer.getBounds();
   if (bounds.isValid()) {
@@ -505,6 +550,7 @@ async function loadData() {
   updateHospitalMarkers();
   updateStats();
   updatePopulationTable();
+  updateLegend();
 }
 
 resetBtn.addEventListener("click", () => {
@@ -514,6 +560,7 @@ resetBtn.addEventListener("click", () => {
   updateHospitalList();
   updateStats();
   updatePopulationTable();
+  updateLegend();
 });
 
 loadData().catch(error => {
@@ -523,3 +570,4 @@ loadData().catch(error => {
 
 // Update hospital icons when user zooms
 map.on('zoomend', updateHospitalIcons);
+map.on("overlayadd overlayremove", updateLegend);
