@@ -496,12 +496,14 @@ async function loadData() {
 
   vaestoruudukkoLayer = L.geoJSON(vaestoruudukkoData, {
     style: styleVaestoruudukkoFeature,
-    onEachFeature: onEachVaestoruudukkoFeature
+    onEachFeature: onEachVaestoruudukkoFeature,
+    renderer: L.canvas({ padding: 0.5 }) // Better performance with many polygons
   })
 
   plus65Layer = L.geoJSON(vaestoruudukkoData, {
     style: style65PlusFeature,
-    onEachFeature: onEach65PlusFeature
+    onEachFeature: onEach65PlusFeature,
+    renderer: L.canvas({ padding: 0.5 }) // Better performance with many polygons
   })
 
   hospitalLayer = L.geoJSON(hospitalsData, {
@@ -533,8 +535,9 @@ async function loadData() {
 
   // Use the custom grouped layer control, not "L.control.layers"
   var baseLayers = {
-    "Tummat kartat": CartoDB_DarkMatter,
-    "Vaaleat kartat": CartoDB_Positron
+    "Ei pohjakarttaa": L.tileLayer('', { attribution: '' }),
+    "Tumma kartta": CartoDB_DarkMatter,
+    "Vaalea kartta": CartoDB_Positron
   };
 
   L.control.groupedLayers(baseLayers, groupedOverlays, options).addTo(map);
