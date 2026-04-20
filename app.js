@@ -467,7 +467,7 @@ async function loadData() {
   const [gridResponse, hospitalsResponse, hvaBoundsResponse, vaestoruudukkoResponse] = await Promise.all([
     fetch("./data/manner-suomi_postinumerot.geojson"),
     fetch("./data/manner-suomi_sairaalat.geojson"),
-    fetch("./data/hva_rajat.geojson"),
+    fetch("./data/hva.geojson"),
     fetch("./data/vaestoruudukko.geojson")
   ]);
 
