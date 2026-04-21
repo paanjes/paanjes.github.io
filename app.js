@@ -5,6 +5,8 @@ const map = L.map('map', {
   zoomDelta: 0.25
 });
 
+map.attributionControl.addAttribution('<a href="https://www.flaticon.com/free-icons/hospital" title="hospital icons" target="_blank" rel="noopener noreferrer">Hospital icons by mavadee &ndash; Flaticon</a>');
+
 let CartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
 	subdomains: 'abcd',
