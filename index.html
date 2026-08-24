@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <title>Palveluverkon saavutettavuus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="frontpage">
+  <header class="front-header">
+    <nav class="top-nav" aria-label="PÃ¤Ã¤navigaatio">
+      <a class="active" href="./index.html">Etusivu</a>
+      <a href="./hospitals.html">Sairaalat</a>
+    </nav>
+  </header>
+
+  <main class="front-main">
+    <section class="front-hero">
+      <h1>Palveluverkon saavutettavuus</h1>
+      <p>
+        TÃ¤mÃ¤ sivusto kokoaa karttapohjaisia tarkasteluja palvelupisteiden
+        saavutettavuudesta Suomessa. Kartat kuvaavat, miten matka-ajat muuttuvat,
+        kun yksittÃ¤isiÃ¤ palvelupisteitÃ¤ poistetaan tai palautetaan tarkasteluun.
+      </p>
+    </section>
+
+    <section class="front-grid" aria-label="Karttasivut">
+      <a class="front-link" href="./hospitals.html">
+        <span class="front-link-title">Sairaaloiden saavutettavuus</span>
+        <span>
+          Tarkastele postinumeroalueiden matka-aikoja pÃ¤ivystyssairaaloihin ja
+          kokeile, miten sairaalan poistaminen vaikuttaa matka-aikaan.
+        </span>
+      </a>
+    </section>
+
+    <section class="front-text">
+      <h2>MitÃ¤ aineisto kertoo?</h2>
+      <p>
+        24/7h pÃ¤ivystyssairaaloiden saavutettavuus lasketaan koko maan tasolla tieverkkoa 
+        pitkin autolla. Jokaiselle alueelle tallennetaan viisi lÃ¤hintÃ¤ palvelupistettÃ¤, 
+        jolloin kartta voi vaihtaa vÃ¤rit automaattisesti seuraavaksi lÃ¤himmÃ¤n aktiivisen 
+        palvelupisteen perusteella. Matka-aika on laskettu postinumeroalueiden tiheimmÃ¤stÃ¤ 
+        1km x 1km vÃ¤estÃ¶ruudusta. Tieverkkona on kÃ¤ytetty OpenStreetMapin tietoja, 
+        ja matka-ajat on laskettu r5py Python-kirjastolla.
+      </p>
+      <p>
+        Saavutettavuusanalyysin lisÃ¤ksi voit tarkastella 1km x 1km vÃ¤estÃ¶ruutuja ja yli 65-vuotiaiden
+        osuukdia vÃ¤estÃ¶stÃ¤ erikseen. Sivupalkissa oleva taulukko nÃ¤yttÃ¤Ã¤ vÃ¤estÃ¶n osuudet, jotka ovat
+        tietyllÃ¤ matka-ajalla palvelupisteeseen, ja voit tarkastella, miten nÃ¤mÃ¤ osuudet muuttuvat, 
+        kun palvelupisteitÃ¤ poistetaan tai palautetaan tarkasteluun.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
+

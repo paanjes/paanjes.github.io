@@ -1,0 +1,26 @@
+# Editor/workspace files
+*.code-workspace
+.vscode/
+
+# Local/generated data
+*.csv
+*.xlsx
+*.pbf
+data/*.osm.pbf
+data/grid_ttm/
+output/
+
+# Keep firestation functionality and datasets local for now
+firestations.html
+data/paloasemat*
+data/vaestoruudukko_*.geojson
+data/vaestoruudukko_kp.geojson
+scripts/*.py
+scripts/__pycache__/
+
+# Hospital site data that should be published
+!data/hospital.png
+!data/hva.geojson
+!data/manner-suomi_postinumerot.geojson
+!data/manner-suomi_sairaalat.geojson
+!data/vaestoruudukko.geojson

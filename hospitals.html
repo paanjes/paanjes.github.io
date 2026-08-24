@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <title>Sairaaloiden saavutettavuuskartta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./scripts/leaflet.groupedlayercontrol.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <nav class="top-nav" aria-label="PÃ¤Ã¤navigaatio">
+        <a href="./index.html">Etusivu</a>
+        <a class="active" href="./hospitals.html">Sairaalat</a>
+      </nav>
+
+      <h1>Sairaaloiden saavutettavuus (matka-aika autolla minuutteina)</h1>
+      <p class="intro">
+        Klikkaa sairaalaa kartalla tai listassa poistaaksesi tai palauttaaksesi sen.
+        Kartta pÃ¤ivittyy automaattisesti seuraavaksi lÃ¤himmÃ¤n aktiivisen sairaalan mukaan.
+        Laskenta on tehty postinumeroalueen tiheimmÃ¤stÃ¤ 1 km x 1 km vÃ¤estÃ¶ruudusta.
+      </p>
+
+      <div id="legendContainer">
+        <div class="legend-section" data-layer="Saavutettavuusanalyysi">
+          <h2>Saavutettavuuskartta</h2>
+          <div class="legend">
+            <div><span class="swatch s0"></span>Ei voitu laskea</div>
+            <div><span class="swatch s1"></span>0-15 min</div>
+            <div><span class="swatch s2"></span>15-30 min</div>
+            <div><span class="swatch s3"></span>30-45 min</div>
+            <div><span class="swatch s4"></span>45-60 min</div>
+            <div><span class="swatch s5"></span>60-90 min</div>
+            <div><span class="swatch s6"></span>90-120 min</div>
+            <div><span class="swatch s7"></span>120-180 min</div>
+            <div><span class="swatch s8"></span>180+ min</div>
+          </div>
+        </div>
+
+        <div class="legend-section" data-layer="VÃ¤estÃ¶ruudukko">
+          <h2>VÃ¤estÃ¶ruudukko</h2>
+          <div class="legend">
+            <div><span class="swatch vaesto1"></span>Ei voitu laskea</div>
+            <div><span class="swatch vaesto2"></span>1</div>
+            <div><span class="swatch vaesto3"></span>2-3</div>
+            <div><span class="swatch vaesto4"></span>4-5</div>
+            <div><span class="swatch vaesto5"></span>6-7</div>
+            <div><span class="swatch vaesto6"></span>8-10</div>
+            <div><span class="swatch vaesto7"></span>11-15</div>
+            <div><span class="swatch vaesto8"></span>16-20</div>
+            <div><span class="swatch vaesto9"></span>21-30</div>
+            <div><span class="swatch vaesto10"></span>31-50</div>
+            <div><span class="swatch vaesto11"></span>51-100</div>
+            <div><span class="swatch vaesto12"></span>101-500</div>
+            <div><span class="swatch vaesto13"></span>&gt;500</div>
+          </div>
+        </div>
+
+        <div class="legend-section" data-layer="Yli 65-vuotiaiden osuus">
+          <h2>Yli 65-vuotiaiden osuus</h2>
+          <div class="legend">
+            <div><span class="swatch yli65_1"></span>Ei voitu laskea</div>
+            <div><span class="swatch yli65_2"></span>0-20 %</div>
+            <div><span class="swatch yli65_3"></span>20-40 %</div>
+            <div><span class="swatch yli65_4"></span>40-60 %</div>
+            <div><span class="swatch yli65_5"></span>60-80 %</div>
+            <div><span class="swatch yli65_6"></span>80-100 %</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="resetBtn" type="button">Resetoi sairaalat</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Sairaalat</div>
+          <div class="stat-value"><span id="activeCount">0</span></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Matka-ajan keskiarvo</div>
+          <div class="stat-value"><span id="avgTime">-</span> min</div>
+        </div>
+      </div>
+
+      <h2>VÃ¤estÃ¶n jakautuminen matka-ajan mukaan</h2>
+      <table id="populationTable">
+        <thead>
+          <tr>
+            <th>Luokka</th>
+            <th>Prosentti</th>
+            <th>HenkilÃ¶Ã¤</th>
+          </tr>
+        </thead>
+        <tbody id="populationTableBody"></tbody>
+      </table>
+
+      <h2>Sairaalat</h2>
+      <div id="facilityList"></div>
+    </aside>
+
+    <main id="map"></main>
+  </div>
+
+  <script>
+    window.ACCESSIBILITY_CONFIG = {
+      facilityLabel: "Sairaala",
+      facilityLabelPlural: "Sairaalat",
+      facilityDataUrl: "./data/manner-suomi_sairaalat.geojson",
+      gridDataUrl: "./data/manner-suomi_postinumerot.geojson",
+      facilityIdProperty: "hospital_id",
+      facilityNameProperty: "name",
+      facilityTypeProperty: "type",
+      gridIdProperty: "grid_id",
+      gridIdLabel: "Postinumero",
+      nearestFieldPrefix: "hospital",
+      iconUrl: "./data/hospital.png",
+      iconAttribution: '<a href="https://www.flaticon.com/free-icons/hospital" title="hospital icons" target="_blank" rel="noopener noreferrer">Hospital icons by mavadee - Flaticon</a>'
+    };
+  </script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
+  <script src="./scripts/leaflet.groupedlayercontrol.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
+
